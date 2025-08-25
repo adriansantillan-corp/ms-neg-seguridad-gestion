@@ -1,0 +1,4 @@
+package com.nitro.ms.neg.seguridad.gestion.interfaces.dto.response;
+
+public class RoleResponseDto {
+}
