@@ -5,23 +5,21 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
-//... otras importaciones
 
 @Getter
 @Setter
 @Entity
-@Table(name = "auth_module")
-public class ModuleEntity {
+@Table(name = "auth_action")
+public class ActionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "module_id")
+    @Column(name = "action_id")
     private Long id;
 
-    @Column(name = "module_name", unique = true, nullable = false, length = 100)
-    private String moduleName;
+    @Column(name = "action_name", unique = true, nullable = false, length = 100)
+    private String actionName;
 
     @Column(columnDefinition = "TEXT")
     private String description;
