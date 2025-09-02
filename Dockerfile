@@ -1,36 +1,50 @@
-# Etapa 1: Construcción con imagen oficial de Gradle (incluye JDK + usuario gradle)
-FROM gradle:17-jdk-alpine AS build
+# =================================================================
+# ETAPA 1: BUILD
+# Usa una imagen completa con JDK y Gradle para compilar el proyecto.
+# 'jammy' (Ubuntu 22.04 LTS) proporciona una base robusta y compatible.
+# =================================================================
+FROM gradle:8-jdk17-jammy AS builder
 
-# Trabajar dentro del contenedor
+# Establece el directorio de trabajo
 WORKDIR /home/gradle/src
 
-# Copiar archivos con permisos correctos
+# Copia todo el código fuente, asignando la propiedad al usuario no-root 'gradle'
+# para mejorar la seguridad durante la compilación.
 COPY --chown=gradle:gradle . .
 
-# Cambiar a usuario gradle si quieres construir sin root (opcional, pero seguro)
+# Cambia al usuario 'gradle' para ejecutar la compilación.
 USER gradle
 
-# Ejecutar build con Gradle Wrapper (mejor práctica)
-RUN ./gradlew build --no-daemon
+# Ejecuta la compilación usando el Gradle Wrapper para asegurar la consistencia.
+# --no-daemon es crucial para entornos de CI/CD y Docker.
+RUN./gradlew build --no-daemon
 
-# Etapa 2: Ejecución con JRE ligero (misma versión)
-FROM eclipse-temurin:17-jre-alpine
+# =================================================================
+# ETAPA 2: RUNTIME
+# Usa una imagen JRE, que es más pequeña y segura
+# que un JDK completo, ya que no incluye herramientas de compilación.
+# =================================================================
+FROM eclipse-temurin:17-jre-jammy
 
-# Crear grupo y usuario no-root con UID/GID fijos (mejor para producción)
-RUN addgroup -g 1001 -S appuser && \
-    adduser -u 1001 -S appuser -G appuser
+# Crea un grupo y un usuario no-root dedicados para ejecutar la aplicación.
+# Este es un principio de seguridad fundamental (mínimo privilegio).
+RUN addgroup --system --gid 1001 appuser && \
+    adduser --system --uid 1001 --gid 1001 appuser && \
+    mkdir /app && chown appuser:appuser /app
 
-# Directorio de la app
-WORKDIR /app
-
-# Copiar el JAR y asignar propiedad al usuario no-root
-COPY --from=build --chown=appuser:appuser /home/gradle/src/build/libs/*.jar app.jar
-
-# Cambiar al usuario no-root
+# Cambia al nuevo usuario no privilegiado.
 USER appuser:appuser
 
-# Puerto que usa tu app (según application.yml)
+# Establece el directorio de trabajo para la ejecución.
+WORKDIR /app
+
+# Copia únicamente el JAR compilado desde la etapa 'builder'.
+# Asigna la propiedad del JAR al usuario 'appuser'.
+COPY --from=builder --chown=appuser:appuser /home/gradle/src/build/libs/*.jar app.jar
+
+# Expone el puerto en el que la aplicación escuchará.
 EXPOSE 8080
 
-# Ejecutar la aplicación
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Comando de entrada para ejecutar la aplicación.
+# Incluye optimizaciones de JVM cruciales para entornos de contenedores.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-XX:+UseG1GC", "-XX:+ExitOnOutOfMemoryError", "-jar", "app.jar"]
