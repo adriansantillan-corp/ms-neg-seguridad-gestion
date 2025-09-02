@@ -1,5 +1,5 @@
-# Etapa 1: Construcción con JDK 17.0.8+8 (Temurin oficial)
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Etapa 1: Construcción con imagen oficial de Gradle (incluye JDK + usuario gradle)
+FROM gradle:17-jdk-alpine AS build
 
 # Trabajar dentro del contenedor
 WORKDIR /home/gradle/src
