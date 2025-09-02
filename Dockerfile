@@ -5,6 +5,10 @@
 # =================================================================
 FROM gradle:8-jdk17-jammy AS builder
 
+# Asegurar que el directorio exista y tenga permisos
+RUN mkdir -p /home/gradle/src && \
+    chown -R gradle:gradle /home/gradle
+
 # Establece el directorio de trabajo
 WORKDIR /home/gradle/src
 
