@@ -1,0 +1,19 @@
+spring:
+  # Desactivamos la inicialización de la base de datos por defecto,
+  # Testcontainers se encargará de ello.
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  # Proporcionamos un issuer-uri FALSO para que Spring Security no falle.
+  # En las pruebas de controlador, simularemos la seguridad.
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dummy-issuer.com
+
+logging:
+  level:
+    # Silenciamos un poco los logs de Testcontainers para que la salida sea más limpia
+    org.testcontainers: INFO
