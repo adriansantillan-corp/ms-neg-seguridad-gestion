@@ -24,7 +24,7 @@ public class UserPersistenceMapper {
                 .profileData(entity.getProfileData())
                 .enabled(entity.isEnabled())
                 .accountNonLocked(entity.isAccountNonLocked())
-                .credentialsNonExpired(entity.isCredentialsNonExpired())
+                //.credentialsNonExpired(entity.isCredentialsNonExpired())
                 .accountNonExpired(entity.isAccountNonExpired())
                 .lastLogin(entity.getLastLogin())
                 .createdBy(entity.getCreatedBy())
@@ -51,7 +51,7 @@ public class UserPersistenceMapper {
         entity.setProfileData(domain.getProfileData());
         entity.setEnabled(domain.isEnabled());
         entity.setAccountNonLocked(domain.isAccountNonLocked());
-        entity.setCredentialsNonExpired(domain.isCredentialsNonExpired());
+        //entity.setCredentialsNonExpired(domain.isCredentialsNonExpired());
         entity.setAccountNonExpired(domain.isAccountNonExpired());
         entity.setLastLogin(domain.getLastLogin());
         entity.setCreatedBy(domain.getCreatedBy());

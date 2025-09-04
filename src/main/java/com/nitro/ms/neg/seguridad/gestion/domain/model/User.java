@@ -20,7 +20,7 @@ public class User {
     private String profileData; // JSONB como String en el dominio, se manejará en la capa de persistencia
     private boolean enabled;
     private boolean accountNonLocked;
-    private boolean credentialsNonExpired;
+    //private boolean credentialsNonExpired;
     private boolean accountNonExpired;
     private LocalDateTime lastLogin;
     private Long createdBy;

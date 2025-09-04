@@ -20,7 +20,7 @@ public class UserApiMapper {
                 .enabled(true) // Por defecto al crear
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .credentialsNonExpired(true)
+                //.credentialsNonExpired(true)
                 .build();
     }
 

@@ -6,6 +6,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -53,8 +55,8 @@ public class UserEntity {
     @Column(nullable = false)
     private boolean accountNonLocked = true;
 
-    @Column(nullable = false)
-    private boolean credentialsNonExpired = true;
+    /*@Column(nullable = false)
+    private boolean credentialsNonExpired = true;*/
 
     @Column(nullable = false)
     private boolean accountNonExpired = true;
@@ -71,4 +73,13 @@ public class UserEntity {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    // Define la relación muchos-a-muchos con RoleEntity.
+    @ManyToMany(fetch = FetchType.LAZY) // LAZY es mejor para el rendimiento general
+    @JoinTable(
+            name = "auth_user_role", // El nombre de la tabla de unión en la base de datos
+            joinColumns = @JoinColumn(name = "user_id"), // La columna en la tabla de unión que apunta a esta entidad (User)
+            inverseJoinColumns = @JoinColumn(name = "role_id") // La columna que apunta a la otra entidad (Role)
+    )
+    private Set<RoleEntity> roles = new HashSet<>();
 }

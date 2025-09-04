@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -22,6 +23,7 @@ public class PermissionController {
     @PostMapping("/assign")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Assign a permission (Action on a Resource) to a Role")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public Mono<Permission> assignPermission(@Valid @RequestBody AssignPermissionRequestDto requestDto) {
         Permission permission = Permission.builder()
                 .roleId(requestDto.getRoleId())

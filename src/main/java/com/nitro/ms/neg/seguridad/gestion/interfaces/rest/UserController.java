@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -27,12 +28,14 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get all user profiles")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'SUPERVISOR')")
     public Flux<UserResponseDto> getAllUsers() {
         return userApplicationService.findAllUsers().map(userApiMapper::toDto);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a user profile by its ID")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'SUPERVISOR')")
     public Mono<UserResponseDto> getUserById(
             @PathVariable @Min(value = 1, message = "User ID must be a positive number.") Long id) {
         return userApplicationService.findUserById(id).map(userApiMapper::toDto);
@@ -41,6 +44,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a new user profile (Just-In-Time Provisioning)")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public Mono<UserResponseDto> createUser(@Valid @RequestBody CreateUserRequestDto requestDto) {
         return userApplicationService.createUser(userApiMapper.toDomain(requestDto))
                 .map(userApiMapper::toDto);

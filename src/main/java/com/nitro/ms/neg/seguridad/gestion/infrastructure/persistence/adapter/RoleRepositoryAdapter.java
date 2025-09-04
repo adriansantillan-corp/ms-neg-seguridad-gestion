@@ -53,4 +53,11 @@ public class RoleRepositoryAdapter implements RoleRepository {
         return Mono.fromCallable(() -> jpaRepository.existsByRoleNameAndCountryCode(roleName, countryCode))
                 .subscribeOn(Schedulers.boundedElastic());
     }
+
+    @Override
+    public Flux<Role> findRolesByUserId(Long userId) {
+        return Flux.defer(() -> Flux.fromIterable(jpaRepository.findRolesByUserId(userId)))
+                .subscribeOn(Schedulers.boundedElastic())
+                .map(mapper::toDomain);
+    }
 }

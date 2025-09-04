@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,12 +29,14 @@ public class RoleController {
 
     @GetMapping
     @Operation(summary = "Get all roles")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'SUPERVISOR')")
     public Flux<RoleResponseDto> getAllRoles() {
         return roleApplicationService.findAllRoles().map(roleApiMapper::toDto);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a role by its ID")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'SUPERVISOR')")
     public Mono<RoleResponseDto> getRoleById(
             @PathVariable @Min(value = 1, message = "Role ID must be a positive number.") Long id) {
         return roleApplicationService.findRoleById(id).map(roleApiMapper::toDto);
