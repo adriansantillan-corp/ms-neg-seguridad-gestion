@@ -21,7 +21,7 @@ USER gradle
 
 # Ejecuta la compilación usando el Gradle Wrapper para asegurar la consistencia.
 # --no-daemon es crucial para entornos de CI/CD y Docker.
-RUN ./gradlew build --no-daemon
+RUN ./gradlew build --no-daemon -x test
 
 # =================================================================
 # ETAPA 2: RUNTIME

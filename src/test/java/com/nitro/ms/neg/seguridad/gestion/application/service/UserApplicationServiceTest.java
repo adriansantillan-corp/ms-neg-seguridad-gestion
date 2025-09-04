@@ -72,8 +72,15 @@ class UserApplicationServiceTest {
     @Test
     @DisplayName("createUser should return error when cognitoSub already exists")
     void createUser_ShouldReturnError_WhenCognitoSubExists() {
+        // Arrange: El usuario con este cognitoSub YA existe.
+        // Usamos el objeto 'user1' de la instancia para configurar el mock.
         when(userRepository.findByCognitoSub(user1.getCognitoSub())).thenReturn(Mono.just(user1));
-        StepVerifier.create(userApplicationService.createUser(user1))
+
+        // Act: Pasamos exactamente el mismo objeto 'user1' al método.
+        Mono<User> result = userApplicationService.createUser(user1);
+
+        // Assert: Verificamos que se emite un error de tipo IllegalArgumentException.
+        StepVerifier.create(result)
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }
