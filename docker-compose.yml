@@ -25,6 +25,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      - SPRING_PROFILES_ACTIVE=local
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/seguridad_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=N1KOLAS23
