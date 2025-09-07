@@ -27,8 +27,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=local
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/seguridad_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=N1KOLAS23
+      - DB_USER=postgres
+      - DB_PASS=N1KOLAS23
+      - JWT_ISSUER_URI=http://localhost:9000/realms/nitro
 
 volumes:
   postgres_data:
