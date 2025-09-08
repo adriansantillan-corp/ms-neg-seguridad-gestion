@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ms-neg-seguridad-gestion
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: ${SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI}
+
+  flyway:
+    enabled: true
+    validate-on-migrate: false
+    baseline-on-migrate: true
+
+logging:
+  level:
+    com.nitro.ms.neg.seguridad.gestion: DEBUG # Paquete base de nuestro proyecto
+    org.springframework.security: DEBUG
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

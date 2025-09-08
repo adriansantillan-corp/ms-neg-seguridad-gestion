@@ -1,0 +1,18 @@
+spring:
+  # La URL de la base de datos para producción (Aurora) debe usar SSL.
+  # Los valores ${DB_HOST}, ${DB_PORT}, etc., se inyectarán como variables de entorno en producción.
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require
+    hikari:
+      maximum-pool-size: 20
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+logging:
+  level:
+    com.nitro.ms.neg.seguridad.gestion: INFO
+    org.springframework: WARN

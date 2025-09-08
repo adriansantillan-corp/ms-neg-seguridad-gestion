@@ -5,20 +5,22 @@ services:
     ports:
       - "5050:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=N1KOLAS23
-      - POSTGRES_DB=seguridad_db
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d seguridad_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   app:
     container_name: ms-neg-seguridad-gestion
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     depends_on:
@@ -26,10 +28,13 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=local
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/seguridad_db
-      - DB_USER=postgres
-      - DB_PASS=N1KOLAS23
-      - JWT_ISSUER_URI=http://localhost:9000/realms/nitro
+      - DB_URL=jdbc:postgresql://db:5432/${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - JWT_ISSUER_URI=${JWT_ISSUER_URI}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
 
 volumes:
   postgres_data:
