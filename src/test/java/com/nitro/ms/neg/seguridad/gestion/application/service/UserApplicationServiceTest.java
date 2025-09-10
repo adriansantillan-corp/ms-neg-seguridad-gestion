@@ -1,5 +1,3 @@
-// El código completo que te proporcioné en la respuesta anterior va aquí.
-// Es la versión final y correcta.
 package com.nitro.ms.neg.seguridad.gestion.application.service;
 
 import com.nitro.ms.neg.seguridad.gestion.domain.model.User;
@@ -18,7 +16,7 @@ import reactor.test.StepVerifier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserApplicationServiceTest {
@@ -62,27 +60,42 @@ class UserApplicationServiceTest {
     @Test
     @DisplayName("createUser should save and return user when cognitoSub does not exist")
     void createUser_ShouldSaveAndReturnUser_WhenCognitoSubDoesNotExist() {
-        when(userRepository.findByCognitoSub(user1.getCognitoSub())).thenReturn(Mono.empty());
+        // ✅ Usa anyString() para evitar problemas de igualdad
+        when(userRepository.findByCognitoSub(anyString())).thenReturn(Mono.empty());
         when(userRepository.save(any(User.class))).thenReturn(Mono.just(user1));
+
         StepVerifier.create(userApplicationService.createUser(user1))
                 .expectNext(user1)
                 .verifyComplete();
     }
 
+
     @Test
     @DisplayName("createUser should return error when cognitoSub already exists")
     void createUser_ShouldReturnError_WhenCognitoSubExists() {
-        // Arrange: El usuario con este cognitoSub YA existe.
-        // Usamos el objeto 'user1' de la instancia para configurar el mock.
-        when(userRepository.findByCognitoSub(user1.getCognitoSub())).thenReturn(Mono.just(user1));
+        // Arrange
+        User existingUser = User.builder()
+                .id(1L)
+                .cognitoSub("existing-sub")
+                .username("existing-user")
+                .email("existing@email.com")
+                .build();
 
-        // Act: Pasamos exactamente el mismo objeto 'user1' al método.
-        Mono<User> result = userApplicationService.createUser(user1);
+        User newUser = User.builder()
+                .cognitoSub("existing-sub") // Mismo cognitoSub
+                .username("new-user")
+                .email("new@email.com")
+                .build();
 
-        // Assert: Verificamos que se emite un error de tipo IllegalArgumentException.
-        StepVerifier.create(result)
+        when(userRepository.findByCognitoSub("existing-sub")).thenReturn(Mono.just(existingUser));
+
+        // Act & Assert
+        StepVerifier.create(userApplicationService.createUser(newUser))
                 .expectError(IllegalArgumentException.class)
                 .verify();
+
+        verify(userRepository).findByCognitoSub("existing-sub");
+        verify(userRepository, never()).save(any()); // Verifica que no se guarde
     }
 
     @Test

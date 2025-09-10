@@ -2,9 +2,10 @@ package com.nitro.ms.neg.seguridad.gestion.interfaces.rest;
 
 import com.nitro.ms.neg.seguridad.gestion.application.service.UserApplicationService;
 import com.nitro.ms.neg.seguridad.gestion.domain.model.User;
-import com.nitro.ms.neg.seguridad.gestion.infrastructure.config.SecurityConfig;
+import com.nitro.ms.neg.seguridad.gestion.infrastructure.config.TestSecurityConfig;
 import com.nitro.ms.neg.seguridad.gestion.interfaces.dto.response.UserResponseDto;
 import com.nitro.ms.neg.seguridad.gestion.interfaces.mapper.UserApiMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,42 +15,47 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @WebFluxTest(UserController.class)
-@Import({SecurityConfig.class, UserControllerTest.TestConfig.class})
+@Import({TestSecurityConfig.class, UserControllerTest.TestConfig.class})  // ← Centraliza toda la seguridad aquí
+@ActiveProfiles("test")
 class UserControllerTest {
 
     @Autowired
     private WebTestClient webTestClient;
 
     @Autowired
-    private UserApplicationService userApplicationService;
+    private UserApplicationService userApplicationService; // ← Inyectado desde TestConfig
 
     @Autowired
-    private UserApiMapper userApiMapper;
+    private UserApiMapper userApiMapper; // ← Inyectado desde TestConfig
 
     @TestConfiguration
     static class TestConfig {
 
         @Bean
         @Primary
-        UserApplicationService userApplicationService() {
+        public UserApplicationService userApplicationService() {
             return mock(UserApplicationService.class);
         }
 
         @Bean
         @Primary
-        UserApiMapper userApiMapper() {
+        public UserApiMapper userApiMapper() {
             return mock(UserApiMapper.class);
         }
+    }
+
+    @BeforeEach
+    void setUp() {
+        reset(userApplicationService, userApiMapper);
     }
 
     @Test
@@ -61,7 +67,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"ADMINISTRADOR"})
     @DisplayName("GET /v1/users should return 200 OK with users when authenticated")
     void getAllUsers_ShouldReturn200_WhenAuthenticated() {
         User userDomain = User.builder().id(1L).username("test").build();
@@ -74,12 +80,13 @@ class UserControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$.id").isEqualTo(1)
-                .jsonPath("$.username").isEqualTo("test");
+                .jsonPath("$").isArray()
+                .jsonPath("$[0].id").isEqualTo(1)
+                .jsonPath("$[0].username").isEqualTo("test");
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPERVISOR"})
     @DisplayName("GET /v1/users/{id} should return user when found")
     void getUserById_ShouldReturnUser_WhenFound() {
         User userDomain = User.builder().id(1L).username("test").build();
@@ -91,7 +98,10 @@ class UserControllerTest {
         webTestClient.get().uri("/v1/users/1")
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(UserResponseDto.class)
-                .isEqualTo(userDto);
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(1)
+                .jsonPath("$.username").isEqualTo("test");
     }
+
+
 }

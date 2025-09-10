@@ -17,7 +17,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity // Habilita la seguridad a nivel de método (ej. @PreAuthorize)
 @RequiredArgsConstructor
-@Profile("!local")
+@Profile("!local & !test")
 public class SecurityConfig {
 
     // Inyectamos el valor del issuer-uri desde application.yml

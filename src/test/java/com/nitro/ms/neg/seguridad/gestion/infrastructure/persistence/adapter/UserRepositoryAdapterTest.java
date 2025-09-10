@@ -1,5 +1,7 @@
 package com.nitro.ms.neg.seguridad.gestion.infrastructure.persistence.adapter;
 
+import com.nitro.ms.neg.seguridad.gestion.MsNegSeguridadGestionApplication;
+import com.nitro.ms.neg.seguridad.gestion.infrastructure.config.TestSecurityConfig;
 import com.nitro.ms.neg.seguridad.gestion.infrastructure.persistence.entity.RoleEntity;
 import com.nitro.ms.neg.seguridad.gestion.infrastructure.persistence.entity.UserEntity;
 import com.nitro.ms.neg.seguridad.gestion.infrastructure.persistence.repository.SpringDataRoleRepository;
@@ -7,32 +9,51 @@ import com.nitro.ms.neg.seguridad.gestion.infrastructure.persistence.repository.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest // Carga solo la configuración de persistencia de Spring.
+@SpringBootTest
 @Testcontainers
+@ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
+@ContextConfiguration(classes = {MsNegSeguridadGestionApplication.class, TestSecurityConfig.class})
 class UserRepositoryAdapterTest {
 
     @Container
-    static PostgreSQLContainer<?> postgresqlContainer = new PostgreSQLContainer<>("postgres:15-alpine");
+    static PostgreSQLContainer<?> postgresqlContainer = new PostgreSQLContainer<>("postgres:15-alpine")
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass");
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
+        // Asegurar que el contenedor esté iniciado antes de configurar propiedades
         registry.add("spring.datasource.url", postgresqlContainer::getJdbcUrl);
         registry.add("spring.datasource.username", postgresqlContainer::getUsername);
         registry.add("spring.datasource.password", postgresqlContainer::getPassword);
-        // Para @DataJpaTest, es común dejar que Hibernate cree el esquema.
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+
+        // Configuración JPA
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("spring.jpa.show-sql", () -> "true");
+        registry.add("spring.jpa.properties.hibernate.format_sql", () -> "true");
+
+        // Configuración adicional para evitar conflictos
+        registry.add("spring.liquibase.enabled", () -> "false");
+        registry.add("spring.flyway.enabled", () -> "false");
     }
 
     @Autowired
@@ -74,5 +95,13 @@ class UserRepositoryAdapterTest {
         assertThat(foundRoles).hasSize(2);
         assertThat(foundRoles).extracting(RoleEntity::getRoleName)
                 .containsExactlyInAnyOrder("VENDEDOR", "SUPERVISOR");
+    }
+
+    @Test
+    @DisplayName("should verify container is running")
+    void containerShouldBeRunning() {
+        assertThat(postgresqlContainer.isRunning()).isTrue();
+        assertThat(postgresqlContainer.getJdbcUrl()).isNotNull();
+        assertThat(postgresqlContainer.getJdbcUrl()).contains("jdbc:postgresql://localhost:");
     }
 }

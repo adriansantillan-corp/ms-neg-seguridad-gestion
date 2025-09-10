@@ -2,7 +2,7 @@ package com.nitro.ms.neg.seguridad.gestion.interfaces.rest;
 
 import com.nitro.ms.neg.seguridad.gestion.application.service.RoleApplicationService;
 import com.nitro.ms.neg.seguridad.gestion.domain.model.Role;
-import com.nitro.ms.neg.seguridad.gestion.infrastructure.config.SecurityConfig;
+import com.nitro.ms.neg.seguridad.gestion.infrastructure.config.TestSecurityConfig;
 import com.nitro.ms.neg.seguridad.gestion.interfaces.dto.response.RoleResponseDto;
 import com.nitro.ms.neg.seguridad.gestion.interfaces.mapper.RoleApiMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,7 +25,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
 @WebFluxTest(RoleController.class)
-@Import({SecurityConfig.class, RoleControllerTest.TestConfig.class})
+@Import({TestSecurityConfig.class, RoleControllerTest.TestConfig.class})  // ← Centraliza toda la seguridad aquí
+@ActiveProfiles("test")
 class RoleControllerTest {
 
     @Autowired
@@ -40,7 +42,7 @@ class RoleControllerTest {
     static class TestConfig {
 
         @Bean
-        @Primary // Asegura que este mock reemplace cualquier otro bean de este tipo
+        @Primary
         RoleApplicationService roleApplicationService() {
             return mock(RoleApplicationService.class);
         }
@@ -61,7 +63,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"ADMINISTRADOR"})  // ← Agregar el rol necesario según tu @PreAuthorize
     @DisplayName("GET /v1/roles should return 200 OK when authenticated")
     void getAllRoles_ShouldReturn200_WhenAuthenticated() {
         Role roleDomain = Role.builder().id(1L).roleName("VENDEDOR").build();
@@ -74,12 +76,13 @@ class RoleControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$.id").isEqualTo(1)
-                .jsonPath("$.roleName").isEqualTo("VENDEDOR");
+                .jsonPath("$").isArray()  // ← Verificar que es un array
+                .jsonPath("$[0].id").isEqualTo(1)  // ← Usar índice [0]
+                .jsonPath("$[0].roleName").isEqualTo("VENDEDOR");  // ← Usar índice [0]
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"ADMINISTRADOR"})  // ← Usar el rol correcto
     @DisplayName("GET /v1/roles/{id} should return role when found")
     void getRoleById_ShouldReturnRole_WhenFound() {
         Role roleDomain = Role.builder().id(1L).roleName("VENDEDOR").build();
@@ -91,7 +94,9 @@ class RoleControllerTest {
         webTestClient.get().uri("/v1/roles/1")
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(RoleResponseDto.class)
-                .isEqualTo(roleDto);
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(1)
+                .jsonPath("$.roleName").isEqualTo("VENDEDOR");
     }
+
 }

@@ -2,7 +2,9 @@ package com.nitro.ms.neg.seguridad.gestion;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -14,6 +16,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers // Habilita la integración de JUnit 5 con Testcontainers
 @ActiveProfiles("test") // Le dice a Spring que use el perfil 'test' (y application-test.yml)
 class MsNegSeguridadGestionApplicationTests {
+
+    @Autowired
+    private ReactiveJwtDecoder jwtDecoder;
 
     // Crea un contenedor de PostgreSQL que vivirá durante la ejecución de las pruebas
     @Container
@@ -33,6 +38,8 @@ class MsNegSeguridadGestionApplicationTests {
     @Test
     @DisplayName("Application context should load successfully")
     void contextLoads() {
+
+        System.out.println("JwtDecoder class: " + jwtDecoder.getClass().getName());
         // Si esta prueba pasa, significa que:
         // 1. La aplicación puede arrancar.
         // 2. La conexión a la base de datos es exitosa.

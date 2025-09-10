@@ -3,6 +3,7 @@ package com.nitro.ms.neg.seguridad.gestion.infrastructure.config;
 import com.nitro.ms.neg.seguridad.gestion.domain.repository.RoleRepository;
 import com.nitro.ms.neg.seguridad.gestion.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Profile("!test")
 public class JwtAuthConverter implements Converter<Jwt, Mono<AbstractAuthenticationToken>> {
 
     private final UserRepository userRepository;

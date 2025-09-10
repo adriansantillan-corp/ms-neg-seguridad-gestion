@@ -24,10 +24,13 @@ public class UserApplicationService {
     }
 
     public Mono<User> createUser(User user) {
-        // Lógica de negocio: verificar si ya existe un usuario con ese cognito_sub
+        if (user.getCognitoSub() == null) {
+            return Mono.error(new IllegalArgumentException("cognitoSub cannot be null"));
+        }
+
         return userRepository.findByCognitoSub(user.getCognitoSub())
-                .flatMap(existingUser -> Mono.error(new IllegalArgumentException("User with this Cognito SUB already exists.")))
-                .switchIfEmpty(userRepository.save(user))
+                .flatMap(existingUser -> Mono.error(new IllegalArgumentException("User with cognitoSub already exists")))
+                .switchIfEmpty(Mono.defer(() -> userRepository.save(user)))
                 .cast(User.class);
     }
 }
